@@ -170,7 +170,7 @@ func (roundTripper RetryingRoundTripper) RoundTrip(req *http.Request) (resp *htt
 
 			rdr1.Read(p)
 			postedBody = string(p)
-			roundTripper.logger.Info("roundtripper posted body", zap.String("body", postedBody))
+			roundTripper.logger.Debug("roundtripper posted body", zap.String("body", postedBody))
 			req.Body = rdr2
 		}
 	}
@@ -322,9 +322,10 @@ func (roundTripper RetryingRoundTripper) RoundTrip(req *http.Request) (resp *htt
 			executingTimeout = executingTimeout * time.Duration(roundTripper.funcHandler.tsRoundTripperParams.timeoutExponent)
 			retryCounter++
 
-			roundTripper.logger.Info("request errored out - backing off before retrying",
+			roundTripper.logger.Error("request errored out - backing off before retrying",
 				zap.String("url", req.URL.Host),
-				zap.Duration("backoff_timeout", executingTimeout))
+				zap.Duration("backoff_timeout", executingTimeout),
+				zap.Error(err))
 
 			time.Sleep(executingTimeout)
 
@@ -336,7 +337,8 @@ func (roundTripper RetryingRoundTripper) RoundTrip(req *http.Request) (resp *htt
 			// it means, the entry in router cache is stale, so invalidate it.
 			roundTripper.logger.Error("request errored out - removing function from router's cache and requesting a new service for function",
 				zap.String("url", req.URL.Host),
-				zap.String("function_name", fnMeta.Name))
+				zap.String("function_name", fnMeta.Name),
+				zap.Error(err))
 			roundTripper.funcHandler.fmap.remove(fnMeta)
 			retryCounter = 0
 		}
@@ -397,7 +399,7 @@ func (fh functionHandler) handler(responseWriter http.ResponseWriter, request *h
 		UID := strings.ToLower(uuid.NewV4().String())
 		reqUID = "REQ" + UID
 		request.Header.Set("X-Fission-ReqUID", reqUID)
-		fh.logger.Info("record request", zap.String("request_id", reqUID))
+		fh.logger.Debug("record request", zap.String("request_id", reqUID))
 	}
 
 	if fh.httpTrigger != nil && fh.httpTrigger.Spec.FunctionReference.Type == types.FunctionReferenceTypeFunctionWeights {
@@ -549,7 +551,7 @@ func (fh *functionHandler) getServiceEntry(ctx context.Context) (serviceUrl *url
 			var u *url.URL
 			// Get service entry from executor and update cache if its the first goroutine
 			if firstToTheLock { // first to the service url
-				fh.logger.Info("calling getServiceForFunction",
+				fh.logger.Debug("calling getServiceForFunction",
 					zap.String("function_name", fh.function.Name))
 				u, err = fh.getServiceEntryFromExecutor(ctx)
 				if err != nil {
