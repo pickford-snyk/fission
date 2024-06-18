@@ -6,3 +6,4 @@ requests==2.20.0
 redis
 hiredis
 gevent
+urllib3>=1.26.19 # not directly required, pinned by Snyk to avoid a vulnerability
