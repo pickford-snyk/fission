@@ -1,6 +1,6 @@
 # Based on tutumcloud/influxdb source repository: https://github.com/tutumcloud/influxdb
 
-FROM ubuntu:trusty
+FROM ubuntu:trusty-20190425
 MAINTAINER Ta-Ching Chen <contact@tachingchen.com>
 
 RUN apt-get update && apt-get install -y curl && apt-get clean && rm -rf /var/lib/apt/lists
