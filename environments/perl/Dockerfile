@@ -1,4 +1,4 @@
-FROM perl:latest
+FROM perl:5.43.9-trixie
 
 RUN cpanm -n Twiggy Getopt::Args Dancer2
 
